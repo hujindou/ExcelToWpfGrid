@@ -3,3 +3,7 @@
 ################################################################################
 
 /ExcelToWpf/obj/Debug
+/ExcelToWpf/bin/Debug
+/.vs/ExcelToWpf/v15/Server/sqlite3
+/.vs/ExcelToWpf/v15
+/ExcelToWpf.v11.suo

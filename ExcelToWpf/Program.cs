@@ -199,6 +199,7 @@ namespace ExcelToWpf
         private static void goLeft(int i, int j, Border[,] rawborder, List<Border> list)
         {
             Console.WriteLine("GoLeft " + rawborder[i, j].Position() + " " + rawborder[i, j].ToString());
+            //something wrong here
             //current box has left border
             if (rawborder[i, j].T > 0)
             {
