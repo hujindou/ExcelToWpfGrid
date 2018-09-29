@@ -8,16 +8,41 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 namespace ExcelToWpf
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static int cTi(string p)
         {
+            string tmpstr = p.ToUpper();
+            string arr = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            int res = 0;
 
+            for (int i = 0; i < p.Length; i++)
+            {
+                int t1 = arr.IndexOf(p[i]) + 1;
+                int t2 = p.Length - i - 1;
+                int t3 = (int)Math.Pow(26, t2) * t1;
+                res += t3;
+            }
+
+            return res;
+        }
+
+        public static string generateTestGridString(string fileName)
+        {
+            string restr = null;
+            var t1 = cTi("A");
+            var t2 = cTi("B");
+            var t3 = cTi("Z");
+            var t4 = cTi("AA");
+            var t5 = cTi("AZ");
+            var t6 = cTi("ZZ");
+            var t7 = cTi("AAA");
+            var t8 = cTi("ZZZ");
             string targetFile = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), @"20180605検査員の作業範囲.xlsx");
 
             Excel.Application xlApp = new Excel.Application();
 
-            var workbook = xlApp.Workbooks.Open(targetFile , ReadOnly:true);
+            var workbook = xlApp.Workbooks.Open(targetFile, ReadOnly: true);
 
             foreach (Excel.Worksheet sheet in workbook.Worksheets)
             {
@@ -54,9 +79,9 @@ namespace ExcelToWpf
                         //Console.WriteLine();
                     }
 
-                    if(res.Count > 0)
+                    if (res.Count > 0)
                     {
-                        var filter1 = res.Values.Where(r => r.Count >= 5 && r[0].Equals(r[r.Count -1]));
+                        var filter1 = res.Values.Where(r => r.Count >= 5 && r[0].Equals(r[r.Count - 1]));
 
                         if (filter1.Count() > 0)
                         {
@@ -67,12 +92,117 @@ namespace ExcelToWpf
                             var rightmost = target.Select(r => r.Y).Max();
                             var topmost = target.Select(r => r.X).Min();
                             var bottommost = target.Select(r => r.X).Max();
+
+                            string defaultGrid = createDefaultGrid(leftmost, topmost, rightmost, bottommost);
+
+                            string defaultGridWithMergedSupported = createDefaultGridSupportingMerged(leftmost, topmost, rightmost, bottommost, rawborder);
+
+                            restr = defaultGridWithMergedSupported;
                             //Console.WriteLine(String.Join(" ", target.Select(r => r.Position())));
 
-                            Console.WriteLine(leftmost + " " + rightmost + " " + topmost + " " + bottommost);
+                            //Console.WriteLine(leftmost + " " + rightmost + " " + topmost + " " + bottommost);
+                            //Console.WriteLine(defaultGridWithMergedSupported);
                         }
                     }
-                    
+
+                }
+
+            }
+
+            xlApp.Quit();
+
+            if (xlApp != null)
+            {
+                int excelProcessId = -1;
+                GetWindowThreadProcessId(new IntPtr(xlApp.Hwnd), out excelProcessId);
+
+                System.Diagnostics.Process ExcelProc = System.Diagnostics.Process.GetProcessById(excelProcessId);
+                if (ExcelProc != null)
+                {
+                    ExcelProc.Kill();
+                }
+            }
+
+            //Console.ReadKey();
+            return restr;
+        }
+
+        static void Main(string[] args)
+        {
+            var t1 = cTi("A");
+            var t2 = cTi("B");
+            var t3 = cTi("Z");
+            var t4 = cTi("AA");
+            var t5 = cTi("AZ");
+            var t6 = cTi("ZZ");
+            var t7 = cTi("AAA");
+            var t8 = cTi("ZZZ");
+            string targetFile = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), @"20180605検査員の作業範囲.xlsx");
+
+            Excel.Application xlApp = new Excel.Application();
+
+            var workbook = xlApp.Workbooks.Open(targetFile, ReadOnly: true);
+
+            foreach (Excel.Worksheet sheet in workbook.Worksheets)
+            {
+                var range = sheet.UsedRange;
+                int col = range.Columns.Count;
+                int row = range.Rows.Count;
+
+                if (sheet.Name == "print")
+                {
+                    Border[,] rawborder = new Border[row + 1, col + 1];
+
+                    if (col >= 1 && row >= 1)
+                    {
+                        for (int i = 1; i <= row + 1; i++)
+                        {
+                            for (int j = 1; j <= col + 1; j++)
+                            {
+                                var rg = sheet.Cells[i, j] as Excel.Range;
+                                readBorderInfo(rg, i, j, rawborder);
+                            }
+                        }
+                    }
+
+                    Dictionary<Tuple<int, int>, List<Border>> res = new Dictionary<Tuple<int, int>, List<Border>>();
+
+                    for (int i = 0; i < rawborder.GetLength(0); i++)
+                    {
+                        for (int j = 0; j < rawborder.GetLength(1); j++)
+                        {
+                            //Console.Write(rawborder[i, j].ToString() + " ");
+
+                            findMap(i, j, rawborder, res);
+                        }
+                        //Console.WriteLine();
+                    }
+
+                    if (res.Count > 0)
+                    {
+                        var filter1 = res.Values.Where(r => r.Count >= 5 && r[0].Equals(r[r.Count - 1]));
+
+                        if (filter1.Count() > 0)
+                        {
+                            var max = filter1.Select(r => r.Count).Max();
+                            var target = filter1.FirstOrDefault(r => r.Count == max);
+
+                            var leftmost = target.Select(r => r.Y).Min();
+                            var rightmost = target.Select(r => r.Y).Max();
+                            var topmost = target.Select(r => r.X).Min();
+                            var bottommost = target.Select(r => r.X).Max();
+
+                            string defaultGrid = createDefaultGrid(leftmost, topmost, rightmost, bottommost);
+
+                            string defaultGridWithMergedSupported = createDefaultGridSupportingMerged(leftmost, topmost, rightmost, bottommost, rawborder);
+
+                            //Console.WriteLine(String.Join(" ", target.Select(r => r.Position())));
+
+                            //Console.WriteLine(leftmost + " " + rightmost + " " + topmost + " " + bottommost);
+                            //Console.WriteLine(defaultGridWithMergedSupported);
+                        }
+                    }
+
                 }
 
             }
@@ -92,6 +222,136 @@ namespace ExcelToWpf
             }
 
             Console.ReadKey();
+        }
+
+        private static string createDefaultGridSupportingMerged(int leftmost, int topmost, int rightmost, int bottommost, Border[,] rawborder)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = topmost; i <= bottommost; i++)
+            {
+                sb.Append("\t\t");
+                sb.AppendLine("<RowDefinition />");
+            }
+
+            string rowDef = sb.ToString();
+
+            sb.Clear();
+
+            for (int j = leftmost; j <= rightmost; j++)
+            {
+                sb.Append("\t\t");
+                sb.AppendLine("<ColumnDefinition />");
+            }
+
+            string colDef = sb.ToString();
+
+            sb.Clear();
+
+            for (int i = topmost; i <= bottommost; i++)
+            {
+                for (int j = leftmost; j <= rightmost; j++)
+                {
+                    if(rawborder[i,j].Merged)
+                    {
+                        if(rawborder[i, j].X == rawborder[i, j].RangeTop && rawborder[i, j].Y == rawborder[i, j].RangeLeft)
+                        {
+                            sb.AppendLine($"\t<Border BorderBrush=\"Black\" BorderThickness=\"1,1,1,1\" Grid.Row=\"{i - topmost}\" Grid.Column=\"{j - leftmost}\" Grid.ColumnSpan=\"{rawborder[i, j].RangeRight - rawborder[i, j].RangeLeft + 1}\" Grid.RowSpan=\"{rawborder[i, j].RangeBottom - rawborder[i, j].RangeTop + 1}\" ></Border>");
+                        }
+                    }
+                    else
+                    {
+                        sb.AppendLine($"\t<Border BorderBrush=\"Black\" BorderThickness=\"1,1,1,1\" Grid.Row=\"{i - topmost}\" Grid.Column=\"{j - leftmost}\" ></Border>");
+                    }
+                }
+            }
+
+            string content = sb.ToString();
+
+            sb.Clear();
+
+            string template = $@"<Grid  Margin=""20"" SnapsToDevicePixels=""True"">
+    <Grid.RowDefinitions>
+{rowDef}
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+{colDef}
+    </Grid.ColumnDefinitions>
+{content}
+</Grid>
+";
+            return template;
+        }
+
+        private static string createDefaultGrid(int leftmost, int topmost, int rightmost, int bottommost)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (int i = topmost; i <= bottommost; i++)
+            {
+                sb.Append("\t\t");
+                sb.AppendLine("<RowDefinition />");
+            }
+
+            string rowDef = sb.ToString();
+
+            sb.Clear();
+
+            for (int j = leftmost; j <= rightmost; j++)
+            {
+                sb.Append("\t\t");
+                sb.AppendLine("<ColumnDefinition />");
+            }
+
+            string colDef = sb.ToString();
+
+            sb.Clear();
+
+            for (int i = topmost; i <= bottommost; i++)
+            {
+                for (int j = leftmost; j <= rightmost; j++)
+                {
+                    if (i == topmost)
+                    {
+                        if (j == leftmost)
+                        {
+                            sb.AppendLine($"\t<Border BorderBrush=\"Black\" BorderThickness=\"1,1,1,1\" Grid.Row=\"{i - topmost}\" Grid.Column=\"{j - leftmost}\" ></Border>");
+                        }
+                        else
+                        {
+                            sb.AppendLine($"\t<Border BorderBrush=\"Black\" BorderThickness=\"0,1,1,1\" Grid.Row=\"{i - topmost}\" Grid.Column=\"{j - leftmost}\" ></Border>");
+                        }
+                    }
+                    else
+                    {
+                        if (j == leftmost)
+                        {
+                            sb.AppendLine($"\t<Border BorderBrush=\"Black\" BorderThickness=\"1,0,1,1\" Grid.Row=\"{i - topmost}\" Grid.Column=\"{j - leftmost}\" ></Border>");
+                        }
+                        else
+                        {
+                            sb.AppendLine($"\t<Border BorderBrush=\"Black\" BorderThickness=\"0,0,1,1\" Grid.Row=\"{i - topmost}\" Grid.Column=\"{j - leftmost}\" ></Border>");
+                        }
+                    }
+
+                }
+            }
+
+            string content = sb.ToString();
+
+            sb.Clear();
+
+            string template = $@"<Grid Margin=""20"" SnapsToDevicePixels=""True"">
+    <Grid.RowDefinitions>
+{rowDef}
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+{colDef}
+    </Grid.ColumnDefinitions>
+{content}
+</Grid>
+";
+            return template;
         }
 
         private static void findMap(int i, int j, Border[,] rawborder, Dictionary<Tuple<int, int>, List<Border>> res)
@@ -279,13 +539,53 @@ namespace ExcelToWpf
 
             if (rg.MergeCells)
             {
-                var xx = rg.MergeArea;
-
-                var yy = xx.Address;
-
-                var zz = xx.AddressLocal;
-                
                 rawborder[i - 1, j - 1].Merged = true;
+
+                var xx = rg.MergeArea;
+                var yy = xx.Address;
+                var zz = yy.Replace("$", "");
+
+                string[] p = zz.Split(':');
+
+                List<int> tmplst = new List<int>();
+                tmplst.Add(p[0].IndexOf('1'));
+                tmplst.Add(p[0].IndexOf('2'));
+                tmplst.Add(p[0].IndexOf('3'));
+                tmplst.Add(p[0].IndexOf('4'));
+                tmplst.Add(p[0].IndexOf('5'));
+                tmplst.Add(p[0].IndexOf('6'));
+                tmplst.Add(p[0].IndexOf('7'));
+                tmplst.Add(p[0].IndexOf('8'));
+                tmplst.Add(p[0].IndexOf('9'));
+                tmplst.Add(p[0].IndexOf('0'));
+
+                var l = tmplst.Where(r => r > 0).Min();
+                var lx = p[0].Substring(l);
+                var lt = p[0].Substring(0, l);
+
+                rawborder[i - 1, j - 1].RangeLeft = cTi(lt) - 1;
+                rawborder[i - 1, j - 1].RangeTop = int.Parse(lx) - 1;
+
+                tmplst.Clear();
+                tmplst.Add(p[1].IndexOf('1'));
+                tmplst.Add(p[1].IndexOf('2'));
+                tmplst.Add(p[1].IndexOf('3'));
+                tmplst.Add(p[1].IndexOf('4'));
+                tmplst.Add(p[1].IndexOf('5'));
+                tmplst.Add(p[1].IndexOf('6'));
+                tmplst.Add(p[1].IndexOf('7'));
+                tmplst.Add(p[1].IndexOf('8'));
+                tmplst.Add(p[1].IndexOf('9'));
+                tmplst.Add(p[1].IndexOf('0'));
+
+                l = tmplst.Where(r => r > 0).Min();
+                lx = p[1].Substring(l);
+                lt = p[1].Substring(0, l);
+
+                rawborder[i - 1, j - 1].RangeRight = cTi(lt) - 1;
+                rawborder[i - 1, j - 1].RangeBottom = int.Parse(lx) - 1;
+
+                //Console.WriteLine($"cell({i},{j}) - range [{yy}] [{zz}] ");
             }
         }
 
@@ -364,6 +664,11 @@ namespace ExcelToWpf
         /// is this cell a merged cell
         /// </summary>
         public bool Merged;
+
+        public int RangeLeft;
+        public int RangeTop;
+        public int RangeRight;
+        public int RangeBottom;
 
         public string ToString()
         {

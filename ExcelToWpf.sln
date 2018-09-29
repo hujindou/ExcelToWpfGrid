@@ -1,7 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2026
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelToWpf", "ExcelToWpf\ExcelToWpf.csproj", "{E3367CEE-2788-4AEF-AB00-DC214939F44C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI", "UI\UI.csproj", "{A8B04C1D-168A-48E2-9B82-DE6DD1FBF66A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,8 +17,15 @@ Global
 		{E3367CEE-2788-4AEF-AB00-DC214939F44C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E3367CEE-2788-4AEF-AB00-DC214939F44C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E3367CEE-2788-4AEF-AB00-DC214939F44C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8B04C1D-168A-48E2-9B82-DE6DD1FBF66A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8B04C1D-168A-48E2-9B82-DE6DD1FBF66A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8B04C1D-168A-48E2-9B82-DE6DD1FBF66A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8B04C1D-168A-48E2-9B82-DE6DD1FBF66A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7CAC8782-F0FB-4DDE-BB52-C0527B2B5D6A}
 	EndGlobalSection
 EndGlobal

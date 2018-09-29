@@ -7,3 +7,8 @@
 /.vs/ExcelToWpf/v15/Server/sqlite3
 /.vs/ExcelToWpf/v15
 /ExcelToWpf.v11.suo
+/UI/bin/Debug
+/UI/obj/Debug
+/TestWpf/obj/Debug
+/TestWpf/bin/Debug
+/ExcelToWpf/ExcelToWpf.csproj.user
