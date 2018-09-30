@@ -12,3 +12,5 @@
 /TestWpf/obj/Debug
 /TestWpf/bin/Debug
 /ExcelToWpf/ExcelToWpf.csproj.user
+/.vs
+/UI/obj/Release

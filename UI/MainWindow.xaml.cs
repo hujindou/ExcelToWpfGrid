@@ -41,9 +41,15 @@ namespace UI
 
         private void generateWindow_Click(object sender, RoutedEventArgs e)
         {
+            if(String.IsNullOrWhiteSpace(parsedExcelContentViewer.Text))
+            {
+                return;
+            }
+
             EmptyWindow emp = new EmptyWindow(parsedExcelContentViewer.Text);
-            emp.ShowDialog();
+            emp.Owner = this;
             emp.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            emp.ShowDialog();
         }
     }
 }

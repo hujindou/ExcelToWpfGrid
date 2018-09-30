@@ -127,103 +127,6 @@ namespace ExcelToWpf
             return restr;
         }
 
-        static void Main(string[] args)
-        {
-            var t1 = cTi("A");
-            var t2 = cTi("B");
-            var t3 = cTi("Z");
-            var t4 = cTi("AA");
-            var t5 = cTi("AZ");
-            var t6 = cTi("ZZ");
-            var t7 = cTi("AAA");
-            var t8 = cTi("ZZZ");
-            string targetFile = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), @"20180605検査員の作業範囲.xlsx");
-
-            Excel.Application xlApp = new Excel.Application();
-
-            var workbook = xlApp.Workbooks.Open(targetFile, ReadOnly: true);
-
-            foreach (Excel.Worksheet sheet in workbook.Worksheets)
-            {
-                var range = sheet.UsedRange;
-                int col = range.Columns.Count;
-                int row = range.Rows.Count;
-
-                if (sheet.Name == "print")
-                {
-                    Border[,] rawborder = new Border[row + 1, col + 1];
-
-                    if (col >= 1 && row >= 1)
-                    {
-                        for (int i = 1; i <= row + 1; i++)
-                        {
-                            for (int j = 1; j <= col + 1; j++)
-                            {
-                                var rg = sheet.Cells[i, j] as Excel.Range;
-                                readBorderInfo(rg, i, j, rawborder);
-                            }
-                        }
-                    }
-
-                    Dictionary<Tuple<int, int>, List<Border>> res = new Dictionary<Tuple<int, int>, List<Border>>();
-
-                    for (int i = 0; i < rawborder.GetLength(0); i++)
-                    {
-                        for (int j = 0; j < rawborder.GetLength(1); j++)
-                        {
-                            //Console.Write(rawborder[i, j].ToString() + " ");
-
-                            findMap(i, j, rawborder, res);
-                        }
-                        //Console.WriteLine();
-                    }
-
-                    if (res.Count > 0)
-                    {
-                        var filter1 = res.Values.Where(r => r.Count >= 5 && r[0].Equals(r[r.Count - 1]));
-
-                        if (filter1.Count() > 0)
-                        {
-                            var max = filter1.Select(r => r.Count).Max();
-                            var target = filter1.FirstOrDefault(r => r.Count == max);
-
-                            var leftmost = target.Select(r => r.Y).Min();
-                            var rightmost = target.Select(r => r.Y).Max();
-                            var topmost = target.Select(r => r.X).Min();
-                            var bottommost = target.Select(r => r.X).Max();
-
-                            string defaultGrid = createDefaultGrid(leftmost, topmost, rightmost, bottommost);
-
-                            string defaultGridWithMergedSupported = createDefaultGridSupportingMerged(leftmost, topmost, rightmost, bottommost, rawborder);
-
-                            //Console.WriteLine(String.Join(" ", target.Select(r => r.Position())));
-
-                            //Console.WriteLine(leftmost + " " + rightmost + " " + topmost + " " + bottommost);
-                            //Console.WriteLine(defaultGridWithMergedSupported);
-                        }
-                    }
-
-                }
-
-            }
-
-            xlApp.Quit();
-
-            if (xlApp != null)
-            {
-                int excelProcessId = -1;
-                GetWindowThreadProcessId(new IntPtr(xlApp.Hwnd), out excelProcessId);
-
-                System.Diagnostics.Process ExcelProc = System.Diagnostics.Process.GetProcessById(excelProcessId);
-                if (ExcelProc != null)
-                {
-                    ExcelProc.Kill();
-                }
-            }
-
-            Console.ReadKey();
-        }
-
         private static string createDefaultGridSupportingMerged(int leftmost, int topmost, int rightmost, int bottommost, Border[,] rawborder)
         {
             StringBuilder sb = new StringBuilder();
@@ -231,7 +134,7 @@ namespace ExcelToWpf
             for (int i = topmost; i <= bottommost; i++)
             {
                 sb.Append("\t\t");
-                sb.AppendLine("<RowDefinition />");
+                sb.AppendLine("<RowDefinition Height=\"55\" />");
             }
 
             string rowDef = sb.ToString();
@@ -252,16 +155,16 @@ namespace ExcelToWpf
             {
                 for (int j = leftmost; j <= rightmost; j++)
                 {
-                    if(rawborder[i,j].Merged)
+                    if (rawborder[i, j].Merged)
                     {
-                        if(rawborder[i, j].X == rawborder[i, j].RangeTop && rawborder[i, j].Y == rawborder[i, j].RangeLeft)
+                        if (rawborder[i, j].X == rawborder[i, j].RangeTop && rawborder[i, j].Y == rawborder[i, j].RangeLeft)
                         {
-                            sb.AppendLine($"\t<Border BorderBrush=\"Black\" BorderThickness=\"1,1,1,1\" Grid.Row=\"{i - topmost}\" Grid.Column=\"{j - leftmost}\" Grid.ColumnSpan=\"{rawborder[i, j].RangeRight - rawborder[i, j].RangeLeft + 1}\" Grid.RowSpan=\"{rawborder[i, j].RangeBottom - rawborder[i, j].RangeTop + 1}\" ></Border>");
+                            sb.AppendLine($"\t<Border BorderBrush=\"Black\" BorderThickness=\"{rawborder[i, j].BorderString(leftmost, topmost, rightmost, bottommost)}\" Grid.Row=\"{i - topmost}\" Grid.Column=\"{j - leftmost}\" Grid.ColumnSpan=\"{rawborder[i, j].RangeRight - rawborder[i, j].RangeLeft + 1}\" Grid.RowSpan=\"{rawborder[i, j].RangeBottom - rawborder[i, j].RangeTop + 1}\" >{rawborder[i, j].ContentString()}</Border>");
                         }
                     }
                     else
                     {
-                        sb.AppendLine($"\t<Border BorderBrush=\"Black\" BorderThickness=\"1,1,1,1\" Grid.Row=\"{i - topmost}\" Grid.Column=\"{j - leftmost}\" ></Border>");
+                        sb.AppendLine($"\t<Border BorderBrush=\"Black\" BorderThickness=\"{rawborder[i, j].BorderString(leftmost, topmost, rightmost, bottommost)}\" Grid.Row=\"{i - topmost}\" Grid.Column=\"{j - leftmost}\" >{rawborder[i, j].ContentString()}</Border>");
                     }
                 }
             }
@@ -542,6 +445,12 @@ namespace ExcelToWpf
                 rawborder[i - 1, j - 1].Merged = true;
 
                 var xx = rg.MergeArea;
+
+                var aa = getborder(xx.Borders[Excel.XlBordersIndex.xlEdgeLeft]);
+                var bb = getborder(xx.Borders[Excel.XlBordersIndex.xlEdgeTop]);
+                var cc = getborder(xx.Borders[Excel.XlBordersIndex.xlEdgeRight]);
+                var dd = getborder(xx.Borders[Excel.XlBordersIndex.xlEdgeBottom]);
+
                 var yy = xx.Address;
                 var zz = yy.Replace("$", "");
 
@@ -673,6 +582,44 @@ namespace ExcelToWpf
         public string ToString()
         {
             return L + "," + T + "," + R + "," + B;
+        }
+
+        public string ContentString()
+        {
+            if (String.IsNullOrWhiteSpace(Content))
+            {
+                return "";
+            }
+
+            if(Content.StartsWith("T:")|| Content.StartsWith("t:"))
+            {
+                return $"<TextBox Text=\"{Content}\" />";
+            }
+            else
+            {
+                return $"<Label Content=\"{Content}\" />";
+            }
+        }
+
+        public string BorderString(int leftMost, int topMost, int rightMost, int bottomMost)
+        {
+            if (X == topMost && Y == leftMost)
+            {
+                return "1,1,1,1";
+            }
+
+            if (X == topMost)
+            {
+                return "0,1,1,1";
+            }
+
+            if (Y == leftMost)
+            {
+                return "1,0,1,1";
+            }
+
+            return "0,0,1,1";
+
         }
 
         public string Position()

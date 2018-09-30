@@ -4,6 +4,6 @@
              xmlns:local="clr-namespace:UI"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <ResourceDictionary Source="CustomedControlDefinition.xaml" />
     </Application.Resources>
 </Application>

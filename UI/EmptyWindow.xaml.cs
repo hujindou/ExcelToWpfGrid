@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ namespace UI
         {
             InitializeComponent();
 
-            XmlReader xr = XmlReader.Create(new System.IO.StringReader(text));
+            //XmlReader xr = XmlReader.Create(new System.IO.StringReader(text));
 
             ParserContext context = new ParserContext();
             context.XmlnsDictionary.Add("", "http://schemas.microsoft.com/winfx/2006/xaml/presentation");
@@ -34,7 +35,8 @@ namespace UI
 
             //var control = XamlReader.Load(xr) as Grid;
 
-            var control =  XamlReader.Parse(text, context) as Grid;
+
+            var control =  XamlReader.Load(new MemoryStream(Encoding.UTF8.GetBytes(text)), context) as Grid;
 
             this.AddChild(control);
         }
