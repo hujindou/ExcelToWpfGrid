@@ -10,12 +10,12 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="55"/>
-            <RowDefinition Height="55"/>
+            <RowDefinition Height="77"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
         <TextBox Name="fileLocation" Text="" FontSize="26" VerticalContentAlignment="Center" Grid.Row="0" />
-        <Button Name="readFile" Style="{StaticResource TestButton}" Grid.Row="1" FontSize="26" Content="Read ExcelFile" HorizontalAlignment="Left" Width="267" Click="readFile_Click" />
-        <Button Name="generateWindow" Grid.Row="1" FontSize="26" Content="Generate Window" HorizontalAlignment="Right" Width="315" Click="generateWindow_Click" />
+        <Button Name="readFile" VerticalContentAlignment="Center" Style="{StaticResource ThreeDButton}" Grid.Row="1" FontSize="26" Content="Read ExcelFile" HorizontalAlignment="Left" Width="267" Click="readFile_Click"  />
+        <Button Name="generateWindow" Style="{StaticResource ThreeDButton}" Grid.Row="1" FontSize="26" Content="Generate Window" HorizontalAlignment="Right" Width="315" Click="generateWindow_Click" />
         <TextBox Name="parsedExcelContentViewer" FontSize="26" Grid.Row="2" IsReadOnly="True"  />
     </Grid>
 </Window>
