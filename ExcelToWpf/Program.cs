@@ -38,7 +38,9 @@ namespace ExcelToWpf
             var t6 = cTi("ZZ");
             var t7 = cTi("AAA");
             var t8 = cTi("ZZZ");
-            string targetFile = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), @"20180605検査員の作業範囲.xlsx");
+
+            string targetFile = fileName;
+            //string targetFile = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), @"20180605検査員の作業範囲.xlsx");
 
             Excel.Application xlApp = new Excel.Application();
 
